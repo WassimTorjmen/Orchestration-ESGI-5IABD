@@ -18,7 +18,8 @@ src/mlproject/*
 !src/mlproject/config.py
 !src/mlproject/features.py
 !src/mlproject/data.py
-
+!src/mlproject/train.py
+*.png
 
 
 
