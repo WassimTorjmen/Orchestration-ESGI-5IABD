@@ -22,10 +22,10 @@ MODEL_DIR = ROOT / "models"
 TARGET = "Survived"
 
 # TODO (S0-3) : colonnes numeriques de votre dataset
-NUMERIC_FEATURES: list[str] = ["Pclass", "Age", "SibSp", "Parch", "Fare"]
+NUMERIC_FEATURES: list[str] = ["Pclass", "Age", "SibSp", "Parch", "Fare", "FamilySize", "IsAlone"]
 
 # TODO (S0-4) : colonnes categorielles (peut rester vide : [])
-CATEGORICAL_FEATURES: list[str] = ["Sex", "Embarked"]
+CATEGORICAL_FEATURES: list[str] = ["Sex", "Embarked", "Title"]
 
 RANDOM_STATE = 42
 

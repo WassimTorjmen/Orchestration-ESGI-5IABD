@@ -72,6 +72,21 @@ L'intérêt de ce problème est double : il illustre un cas de classification bi
         └── retrain_dag.py       # DAG Airflow de ré-entraînement   ← TP S17
 ```
 
+## Résultats
+
+### S0 — Baseline (régression logistique, features brutes)
+
+| Modèle | F1 | ROC AUC |
+|---|---|---|
+| Baseline (features brutes) | 0.724 | 0.844 |
+| + feature engineering & RobustScaler | **0.803** | **0.880** |
+
+**Améliorations apportées (`features.py`) :**
+- `FamilySize = SibSp + Parch + 1` — la taille du groupe familial influe sur la priorité d'évacuation
+- `IsAlone` — les voyageurs seuls avaient significativement moins de chances de survie
+- `Title` extrait de `Name` (Mr / Mrs / Miss / Master / Rare) — prédicteur fort lié au genre et à l'âge
+- `StandardScaler` → `RobustScaler` — robuste aux valeurs aberrantes de `Fare` (plage 0–512)
+
 ## Mise en route
 
 ```bash
