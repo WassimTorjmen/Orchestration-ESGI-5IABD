@@ -31,7 +31,7 @@ L'intérêt de ce problème est double : il illustre un cas de classification bi
 
 ## Stack technique
 
-- **Python 3.13** — géré par [uv](https://docs.astral.sh/uv/)
+- **Python 3.12** — géré par [uv](https://docs.astral.sh/uv/)
 - **scikit-learn** — pipeline de préprocessing + modèles baseline
 - **MLflow** — tracking des expériences + Model Registry
 - **Optuna** — optimisation des hyperparamètres
@@ -46,28 +46,30 @@ L'intérêt de ce problème est double : il illustre un cas de classification bi
 ```
 .
 ├── README.md
-├── Makefile
-├── pyproject.toml
-├── docker-compose.yml
-├── data/                        # Titanic-Dataset.csv (gitignore)
+├── Makefile                     # commandes du projet (install, train, api…)
+├── pyproject.toml               # dépendances Python (uv)
+├── uv.lock
 ├── models/                      # modèles entraînés (gitignore)
-├── mlproject/
-│   ├── config.py                # configuration dataset et chemins
-│   ├── data.py                  # chargement et split
-│   ├── features.py              # pipeline de préprocessing
-│   ├── train.py                 # entraînement baseline (MLflow)
-│   ├── train_optuna.py          # optimisation Optuna + Registry
-│   ├── train_models.py          # comparaison de modèles + SHAP
-│   ├── api.py                   # API FastAPI
-│   └── evaluation.py            # métriques et plots SHAP
-├── frontend/
-│   └── app.py                   # interface Streamlit
-├── docker/
-│   ├── Dockerfile.train
-│   ├── Dockerfile.api
-│   └── Dockerfile.frontend
-└── dags/
-    └── retrain_dag.py           # DAG Airflow de ré-entraînement
+└── src/
+    ├── data/                    # Titanic-Dataset.csv (gitignore)
+    ├── mlproject/
+    │   ├── config.py            # configuration dataset et chemins  ← TP S0
+    │   ├── data.py              # chargement et split
+    │   ├── features.py          # pipeline de préprocessing
+    │   ├── train.py             # entraînement baseline (MLflow)    ← TP S5
+    │   ├── train_optuna.py      # optimisation Optuna + Registry    ← TP S6
+    │   ├── train_models.py      # comparaison de modèles + SHAP     ← TP S7
+    │   ├── api.py               # API FastAPI                       ← TP S12
+    │   └── evaluation.py        # métriques et plots SHAP
+    ├── frontend/
+    │   └── app.py               # interface Streamlit               ← TP S14bis
+    ├── docker/
+    │   ├── Dockerfile.train                                         ← TP S8
+    │   ├── Dockerfile.api
+    │   └── Dockerfile.frontend
+    ├── docker-compose.yml                                           ← TP S14
+    └── dags/
+        └── retrain_dag.py       # DAG Airflow de ré-entraînement   ← TP S17
 ```
 
 ## Mise en route
@@ -81,15 +83,15 @@ uv run python -m mlproject.train               # entraîne la baseline -> affich
 
 | Séance | Fichier à compléter | Objectif |
 |---|---|---|
-| S0 | `mlproject/config.py` | Brancher le dataset Titanic |
-| S5 | `mlproject/train.py` | Suivi d'expériences MLflow |
-| S6 | `mlproject/train_optuna.py` | Optimisation Optuna + Model Registry |
-| S7 | `mlproject/train_models.py` | Comparaison de modèles (GridSearchCV) + SHAP |
-| S8 | `docker/Dockerfile.train` | Conteneuriser l'entraînement |
-| S12 | `mlproject/api.py` | Exposer le modèle via FastAPI |
-| S14 | `docker-compose.yml` | Orchestrer la stack |
-| S14bis | `frontend/app.py` | Frontend Streamlit |
-| S17 | `dags/retrain_dag.py` | Planifier le ré-entraînement avec Airflow |
+| S0 | `src/mlproject/config.py` | Brancher le dataset Titanic |
+| S5 | `src/mlproject/train.py` | Suivi d'expériences MLflow |
+| S6 | `src/mlproject/train_optuna.py` | Optimisation Optuna + Model Registry |
+| S7 | `src/mlproject/train_models.py` | Comparaison de modèles (GridSearchCV) + SHAP |
+| S8 | `src/docker/Dockerfile.train` | Conteneuriser l'entraînement |
+| S12 | `src/mlproject/api.py` | Exposer le modèle via FastAPI |
+| S14 | `src/docker-compose.yml` | Orchestrer la stack |
+| S14bis | `src/frontend/app.py` | Frontend Streamlit |
+| S17 | `src/dags/retrain_dag.py` | Planifier le ré-entraînement avec Airflow |
 
 ## Suivi GitHub
 

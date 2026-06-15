@@ -12,7 +12,16 @@
 *secret*
 *credential*
 .claude/settings.local.json
-/src
+src/*
+!src/mlproject/
+src/mlproject/*
+!src/mlproject/config.py
+!src/mlproject/features.py
+!src/mlproject/data.py
+
+
+
+
 
 /slides
 /tp
@@ -28,6 +37,7 @@ env/
 build/
 dist/
 .python-version
+models/
 
 # ==============================================================================
 # Caches Python / qualite
