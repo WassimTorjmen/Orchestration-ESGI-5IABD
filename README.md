@@ -56,6 +56,7 @@ L'intérêt de ce problème est double : il illustre un cas de classification bi
     │   ├── config.py            # configuration dataset et chemins  ← TP S0
     │   ├── data.py              # chargement et split
     │   ├── features.py          # pipeline de préprocessing
+    │   ├── tracking.py          # setup_experiment, log_dataset     ← TP S5
     │   ├── train.py             # entraînement baseline (MLflow)    ← TP S5
     │   ├── train_optuna.py      # optimisation Optuna + Registry    ← TP S6
     │   ├── train_models.py      # comparaison de modèles + SHAP     ← TP S7
@@ -89,9 +90,26 @@ L'intérêt de ce problème est double : il illustre un cas de classification bi
 
 ### S5 — MLflow Tracking (régression logistique)
 
-Suivi des expériences ajouté dans `train.py` : paramètres (`C`, `max_iter`), métriques (`f1`, `roc_auc`), modèle et matrice de confusion loggués dans MLflow.
+Suivi des expériences dans `train.py` : paramètres (`C`, `max_iter`), métriques (`f1`, `roc_auc`), modèle et matrice de confusion loggués dans MLflow.
 
-### S7 — Comparaison de modèles (GridSearchCV, cv=3, scoring=roc_auc)
+**Partie 2 — Centralisation (`tracking.py`) :**
+- `setup_experiment()` : configure `tracking_uri`, crée/sélectionne l'expérience et y applique description + tags (lus depuis `.env` via `config.py`) — idempotent.
+- `log_dataset()` : trace le DataFrame source dans l'onglet "Datasets" de l'UI MLflow (`mlflow.log_input`).
+- `train.py` et `train_models.py` utilisent désormais ces deux fonctions au lieu de dupliquer la configuration MLflow.
+
+### S6 — Optimisation Optuna (TPE, n_trials=30, cv=5)
+
+Chaque famille (Random Forest, XGBoost, LightGBM) est optimisée par une étude Optuna indépendante (sampler TPE). Les 30 essais de chaque famille sont tracés dans MLflow comme runs imbriqués (`trial-0` … `trial-29`), et le meilleur modèle toutes familles confondues est enregistré dans le Model Registry avec description et tags.
+
+**Structure MLflow :** `optuna-compare` → `random_forest` / `xgboost` / `lightgbm` → `trial-N`
+
+| Famille | Espace de recherche |
+|---|---|
+| Random Forest | `n_estimators` [100-300], `max_depth` {None,10,20,30}, `min_samples_leaf` [1-5] |
+| XGBoost | `n_estimators` [100-300], `max_depth` [3-10], `learning_rate` log[0.01-0.3] |
+| LightGBM | `n_estimators` [50-300], `num_leaves` [15-127], `learning_rate` log[0.01-0.3], `max_depth` [3-12] |
+
+### S7 — Comparaison de modèles (GridSearchCV, cv=5, scoring=roc_auc)
 
 | Modèle | F1 | ROC AUC | Meilleurs hyperparamètres |
 |---|---|---|---|
@@ -104,8 +122,17 @@ Suivi des expériences ajouté dans `train.py` : paramètres (`C`, `max_iter`), 
 ## Mise en route
 
 ```bash
-make install                                    # installe les dépendances (uv)
-uv run python -m mlproject.train               # entraîne la baseline -> affiche f1 et roc_auc
+make install                  # installe les dépendances (uv)
+cp .env.example .env          # copier la configuration (adapter si besoin)
+
+# Terminal 1 — serveur MLflow
+make mlflow                   # http://localhost:5000
+
+# Terminal 2 — entraînements
+make train                    # baseline logreg (C=1.0)
+make train C=0.1              # variante hyperparamètre
+make train-models             # RF / XGBoost / LightGBM (GridSearchCV, cv=5)
+make train-optuna N_TRIALS=30 # RF / XGBoost / LightGBM (Optuna TPE)
 ```
 
 ## Feuille de route des TP
@@ -113,8 +140,8 @@ uv run python -m mlproject.train               # entraîne la baseline -> affich
 | Séance | Fichier à compléter | Objectif |
 |---|---|---|
 | S0 | `src/mlproject/config.py` | Brancher le dataset Titanic ✅ |
-| S5 | `src/mlproject/train.py` | Suivi d'expériences MLflow ✅ |
-| S6 | `src/mlproject/train_optuna.py` | Optimisation Optuna + Model Registry |
+| S5 | `src/mlproject/train.py`, `tracking.py` | Suivi MLflow + centralisation config + dataset lineage ✅ |
+| S6 | `src/mlproject/train_optuna.py` | Optimisation Optuna (TPE) + Model Registry ✅ |
 | S7 | `src/mlproject/train_models.py` | Comparaison de modèles (GridSearchCV) + SHAP ✅ |
 | S8 | `src/docker/Dockerfile.train` | Conteneuriser l'entraînement |
 | S12 | `src/mlproject/api.py` | Exposer le modèle via FastAPI |
