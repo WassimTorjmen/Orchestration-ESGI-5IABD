@@ -20,6 +20,7 @@ src/mlproject/*
 !src/mlproject/data.py
 !src/mlproject/train.py
 !src/mlproject/train_models.py
+!src/mlproject/tracking.py
 *.png
 
 

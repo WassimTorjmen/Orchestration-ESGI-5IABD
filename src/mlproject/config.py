@@ -32,4 +32,9 @@ RANDOM_STATE = 42
 # Surcouche via variables d'environnement (principe 12-factor)
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
 MLFLOW_EXPERIMENT = os.getenv("MLFLOW_EXPERIMENT", "titanic-survival")
+MLFLOW_EXPERIMENT_DESCRIPTION = os.getenv("MLFLOW_EXPERIMENT_DESCRIPTION", "")
+_tags_raw = os.getenv("MLFLOW_EXPERIMENT_TAGS", "")
+MLFLOW_EXPERIMENT_TAGS: dict[str, str] = dict(
+    pair.split("=", 1) for pair in _tags_raw.split(",") if "=" in pair
+)
 MODEL_NAME = os.getenv("MODEL_NAME", "titanic-classifier")
