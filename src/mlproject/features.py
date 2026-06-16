@@ -1,4 +1,5 @@
 """Construction du pre-processing."""
+
 from __future__ import annotations
 
 import pandas as pd
@@ -10,7 +11,19 @@ from sklearn.preprocessing import OneHotEncoder, RobustScaler
 
 from mlproject.config import CATEGORICAL_FEATURES, NUMERIC_FEATURES
 
-_TITLE_RARE = {"Lady", "Countess", "Capt", "Col", "Don", "Dr", "Major", "Rev", "Sir", "Jonkheer", "Dona"}
+_TITLE_RARE = {
+    "Lady",
+    "Countess",
+    "Capt",
+    "Col",
+    "Don",
+    "Dr",
+    "Major",
+    "Rev",
+    "Sir",
+    "Jonkheer",
+    "Dona",
+}
 _TITLE_MAP = {"Mlle": "Miss", "Ms": "Miss", "Mme": "Mrs"}
 
 
@@ -42,21 +55,27 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
 
 
 def build_preprocessor() -> Pipeline:
-    numeric_pipeline = Pipeline([
-        ("imputer", SimpleImputer(strategy="median")),
-        ("scaler", RobustScaler()),
-    ])
-    categorical_pipeline = Pipeline([
-        ("imputer", SimpleImputer(strategy="most_frequent")),
-        ("encoder", OneHotEncoder(handle_unknown="ignore")),
-    ])
+    numeric_pipeline = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", RobustScaler()),
+        ]
+    )
+    categorical_pipeline = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("encoder", OneHotEncoder(handle_unknown="ignore")),
+        ]
+    )
     column_transformer = ColumnTransformer(
         transformers=[
             ("num", numeric_pipeline, NUMERIC_FEATURES),
             ("cat", categorical_pipeline, CATEGORICAL_FEATURES),
         ]
     )
-    return Pipeline([
-        ("feature_engineer", FeatureEngineer()),
-        ("column_transformer", column_transformer),
-    ])
+    return Pipeline(
+        [
+            ("feature_engineer", FeatureEngineer()),
+            ("column_transformer", column_transformer),
+        ]
+    )

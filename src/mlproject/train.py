@@ -6,23 +6,24 @@ Seance 5 - TP MLflow Tracking
     La baseline fonctionne deja : `python -m mlproject.train` doit s'executer
     tel quel une fois config.py adapte a votre dataset (TP S0).
 """
+
 from __future__ import annotations
 
 import argparse
 
 import joblib
+import mlflow
+import mlflow.sklearn
 from matplotlib import pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import ConfusionMatrixDisplay, f1_score, roc_auc_score
 from sklearn.pipeline import Pipeline
 
-import mlflow
-import mlflow.sklearn
-
-from mlproject.config import MODEL_DIR
+from mlproject.config import MODEL_DIR, MODEL_NAME
 from mlproject.data import load_data, split
 from mlproject.features import build_preprocessor
 from mlproject.tracking import log_dataset, setup_experiment
+
 
 def build_model(c: float = 1.0, max_iter: int = 1000) -> Pipeline:
     return Pipeline(
@@ -53,7 +54,7 @@ def train(c: float = 1.0, max_iter: int = 1000) -> dict:
 
         mlflow.log_params({"c": c, "max_iter": max_iter, "model": "logreg"})
         mlflow.log_metrics(metrics)
-        mlflow.sklearn.log_model(model, name="model")
+        mlflow.sklearn.log_model(model, name="model", registered_model_name=MODEL_NAME)
 
         ConfusionMatrixDisplay.from_predictions(y_test, preds)
         plt.savefig("confusion.png")

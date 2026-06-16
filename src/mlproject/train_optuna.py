@@ -14,6 +14,7 @@ Lancement :
     python -m mlproject.train_optuna --n-trials 50 --cv 3
     python -m mlproject.train_optuna --no-mlflow   # desactive le suivi MLflow
 """
+
 from __future__ import annotations
 
 import argparse
@@ -27,22 +28,20 @@ import matplotlib.pyplot as plt
 import mlflow
 import mlflow.sklearn
 import numpy as np
+import optuna
+import optuna.samplers
+from lightgbm import LGBMClassifier
 from mlflow.models import infer_signature
 from sklearn.base import ClassifierMixin
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
     classification_report,
     confusion_matrix,
     roc_auc_score,
 )
-from sklearn.pipeline import Pipeline
-
-import optuna
-import optuna.samplers
 from sklearn.model_selection import cross_val_score
-
-from lightgbm import LGBMClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 
 from mlproject.config import MODEL_DIR, MODEL_NAME, RANDOM_STATE
@@ -439,9 +438,7 @@ def optimize(n_trials: int = 30, cv: int = 5, use_mlflow: bool = True) -> list[F
             mlflow.set_tag("best_model", best.spec.name)
             for result in results:
                 register_as = MODEL_NAME if result is best else None
-                log_family_to_mlflow(
-                    result, x_test, y_test, n_trials, cv, register_as=register_as
-                )
+                log_family_to_mlflow(result, x_test, y_test, n_trials, cv, register_as=register_as)
         logger.info("Meilleur modele enregistre dans le registry sous '%s'", MODEL_NAME)
 
     MODEL_DIR.mkdir(parents=True, exist_ok=True)

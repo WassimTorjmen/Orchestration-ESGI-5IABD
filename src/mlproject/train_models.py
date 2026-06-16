@@ -17,6 +17,7 @@ Lancement :
     python -m mlproject.train_models --cv 3 --scoring roc_auc
     python -m mlproject.train_models --no-mlflow   # desactive le suivi MLflow
 """
+
 from __future__ import annotations
 
 import argparse
@@ -30,8 +31,10 @@ import matplotlib.pyplot as plt
 import mlflow
 import mlflow.sklearn
 import numpy as np
+from lightgbm import LGBMClassifier
 from mlflow.models import infer_signature
 from sklearn.base import ClassifierMixin
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
     classification_report,
@@ -39,16 +42,11 @@ from sklearn.metrics import (
     f1_score,
     roc_auc_score,
 )
-from sklearn.pipeline import Pipeline
-
-from lightgbm import LGBMClassifier
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 
-from mlproject.config import RANDOM_STATE
-
-from mlproject.config import MODEL_DIR, MODEL_NAME
+from mlproject.config import MODEL_DIR, MODEL_NAME, RANDOM_STATE
 from mlproject.data import load_data, split
 from mlproject.evaluation import log_shap_summary
 from mlproject.features import build_preprocessor
@@ -265,11 +263,13 @@ def log_run_to_mlflow(
         mlflow.log_param("scoring", scoring)
 
         mlflow.log_params(result.best_params)
-        mlflow.log_metrics({
-            f"cv_{scoring}": result.cv_score,
-            "f1": result.f1,
-            "roc_auc": result.roc_auc,
-        })
+        mlflow.log_metrics(
+            {
+                f"cv_{scoring}": result.cv_score,
+                "f1": result.f1,
+                "roc_auc": result.roc_auc,
+            }
+        )
 
         cm = confusion_matrix(y_test, result.preds)
         fig, ax = plt.subplots(figsize=(5, 5))

@@ -6,20 +6,20 @@ Seance 12 - TP FastAPI
     modele et l'endpoint /predict (voir les TODO S12-n).
     Lancement : `uvicorn mlproject.api:app --reload`
 """
+
 from __future__ import annotations
 
 import logging
 import os
+from contextlib import asynccontextmanager
 
+import joblib
+import mlflow
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-import mlflow
-from mlproject.config import MODEL_NAME, ROOT
 
-import joblib
-from contextlib import asynccontextmanager
-from mlproject.config import MODEL_DIR
+from mlproject.config import MODEL_DIR, MODEL_NAME, ROOT
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -42,7 +42,6 @@ async def lifespan(app: FastAPI):
     ml.clear()
 
 
-
 app = FastAPI(title="Classification API", version="0.1.0", lifespan=lifespan)
 
 
@@ -60,11 +59,20 @@ class Features(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "examples": [{
-                "Pclass": 1, "Age": 29.0, "SibSp": 0, "Parch": 0,
-                "Fare": 211.3, "FamilySize": 1, "IsAlone": 1,
-                "Sex": "female", "Embarked": "S", "Title": "Miss"
-            }]
+            "examples": [
+                {
+                    "Pclass": 1,
+                    "Age": 29.0,
+                    "SibSp": 0,
+                    "Parch": 0,
+                    "Fare": 211.3,
+                    "FamilySize": 1,
+                    "IsAlone": 1,
+                    "Sex": "female",
+                    "Embarked": "S",
+                    "Title": "Miss",
+                }
+            ]
         }
     }
 
@@ -72,6 +80,7 @@ class Features(BaseModel):
 class PredictionOut(BaseModel):
     prediction: int
     probability: float
+
 
 @app.get("/health")
 def health() -> dict:

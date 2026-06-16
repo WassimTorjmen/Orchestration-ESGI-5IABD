@@ -9,6 +9,7 @@ Seance 5 - TP MLflow Tracking (suite)
     train_optuna, evaluate) peuvent appeler `setup_experiment()` au lieu de
     repeter `set_tracking_uri` + `set_experiment`.
 """
+
 from __future__ import annotations
 
 import logging
