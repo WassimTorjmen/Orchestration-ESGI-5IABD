@@ -119,6 +119,34 @@ Chaque famille (Random Forest, XGBoost, LightGBM) est optimisée par une étude 
 
 **XGBoost** est le meilleur modèle (ROC AUC = 0.859). Le modèle gagnant est enregistré dans le Model Registry MLflow sous `titanic-classifier` et sauvegardé dans `models/model.joblib`. Chaque run inclut : matrice de confusion, rapport de classification, et summary plot SHAP (importance des variables).
 
+### S12 — API FastAPI (`src/mlproject/api.py`)
+
+Le modèle est exposé via une API HTTP REST :
+
+| Endpoint | Méthode | Description |
+|---|---|---|
+| `/health` | GET | Statut de l'API |
+| `/predict` | POST | Prédiction de survie |
+| `/model-info` | GET | Nom et version du modèle servi (bonus) |
+
+Le modèle est chargé **une seule fois au démarrage** via le mécanisme `lifespan` de FastAPI. Les entrées sont validées par Pydantic (`Pclass` ∈ [1,3], `Age` ∈ [0,120], etc.) — une entrée invalide renvoie automatiquement un **422**.
+
+La version servie est lue automatiquement depuis le **MLflow Model Registry** (SQLite local `mlflow.db`) au démarrage, sans nécessiter de serveur MLflow actif. Fallback sur la variable d'env `MODEL_VERSION`.
+
+**Exemples de requêtes :**
+```bash
+# Prédiction
+curl -X POST http://127.0.0.1:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"Pclass": 1, "Age": 29.0, "SibSp": 0, "Parch": 0, "Fare": 211.3,
+       "FamilySize": 1, "IsAlone": 1, "Sex": "female", "Embarked": "S", "Title": "Miss"}'
+# → {"prediction": 1, "probability": 0.9723}
+
+# Version du modèle
+curl http://127.0.0.1:8000/model-info
+# → {"version": "3", "model": "titanic-classifier"}
+```
+
 ## Mise en route
 
 ```bash
@@ -133,6 +161,9 @@ make train                    # baseline logreg (C=1.0)
 make train C=0.1              # variante hyperparamètre
 make train-models             # RF / XGBoost / LightGBM (GridSearchCV, cv=5)
 make train-optuna N_TRIALS=30 # RF / XGBoost / LightGBM (Optuna TPE)
+
+# Terminal 3 — API d'inférence
+make api                      # http://localhost:8000/docs
 ```
 
 ## Feuille de route des TP
@@ -144,7 +175,7 @@ make train-optuna N_TRIALS=30 # RF / XGBoost / LightGBM (Optuna TPE)
 | S6 | `src/mlproject/train_optuna.py` | Optimisation Optuna (TPE) + Model Registry ✅ |
 | S7 | `src/mlproject/train_models.py` | Comparaison de modèles (GridSearchCV) + SHAP ✅ |
 | S8 | `src/docker/Dockerfile.train` | Conteneuriser l'entraînement |
-| S12 | `src/mlproject/api.py` | Exposer le modèle via FastAPI |
+| S12 | `src/mlproject/api.py` | Exposer le modèle via FastAPI ✅ |
 | S14 | `src/docker-compose.yml` | Orchestrer la stack |
 | S14bis | `src/frontend/app.py` | Frontend Streamlit |
 | S17 | `src/dags/retrain_dag.py` | Planifier le ré-entraînement avec Airflow |

@@ -126,7 +126,19 @@ mlflow: ## Demarre le serveur MLflow sur le port 5000
 	  --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns
 
 api: ## Lance l'API FastAPI en rechargement auto (voir API_HOST/API_PORT)
-	# TODO (S12) : $(RUN) uvicorn mlproject.api:app --reload --host $(API_HOST) --port $(API_PORT)
+	$(RUN) uvicorn mlproject.api:app --reload --host $(API_HOST) --port $(API_PORT)
+
+api-health: ## Verifie que l'API repond (/health)
+	curl -s http://$(API_HOST):$(API_PORT)/health | python3 -m json.tool
+
+api-predict: ## Envoie une requete de prediction exemple
+	curl -s -X POST http://$(API_HOST):$(API_PORT)/predict \
+	  -H "Content-Type: application/json" \
+	  -d '{"Pclass":1,"Age":29.0,"SibSp":0,"Parch":0,"Fare":211.3,"FamilySize":1,"IsAlone":1,"Sex":"female","Embarked":"S","Title":"Miss"}' \
+	  | python3 -m json.tool
+
+api-info: ## Affiche la version du modele servi (/model-info)
+	curl -s http://$(API_HOST):$(API_PORT)/model-info | python3 -m json.tool
 
 frontend: ## Lance le frontend Streamlit (voir FRONTEND_PORT, API_URL)
 	# TODO (S14bis) : $(RUN) streamlit run frontend/app.py --server.port $(FRONTEND_PORT)
