@@ -165,16 +165,16 @@ docker-down: ## Arrete et supprime les conteneurs (conserve les volumes)
 # Qualite  [A COMPLETER]
 # ==============================================================================
 
-lint: ## Verifie le style (ruff)
-	# TODO : $(RUN) ruff check mlproject
+lint: ## Verifie le style (ruff check)
+	$(RUN) ruff check src/
 
-format: ## Formate le code (ruff)
-	# TODO : $(RUN) ruff format mlproject
+format: ## Formate le code (ruff format)
+	$(RUN) ruff format src/
 
 type: ## Verifie les types (mypy)
-	# TODO : $(RUN) mypy mlproject
+	$(RUN) mypy src/mlproject
 
 test: ## Lance les tests (pytest)
-	# TODO : $(RUN) pytest
+	$(RUN) pytest --cov=mlproject --cov-report=term-missing -q
 
 check: lint type test ## Workflow qualite complet (lint + types + tests)

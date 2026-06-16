@@ -50,6 +50,9 @@ L'intérêt de ce problème est double : il illustre un cas de classification bi
 ├── pyproject.toml               # dépendances Python (uv)
 ├── uv.lock
 ├── models/                      # modèles entraînés (gitignore)
+├── .github/
+│   └── workflows/
+│       └── ci_cd.yaml           # pipeline CI GitHub Actions
 └── src/
     ├── data/                    # Titanic-Dataset.csv (gitignore)
     ├── mlproject/
@@ -161,9 +164,14 @@ make train                    # baseline logreg (C=1.0)
 make train C=0.1              # variante hyperparamètre
 make train-models             # RF / XGBoost / LightGBM (GridSearchCV, cv=5)
 make train-optuna N_TRIALS=30 # RF / XGBoost / LightGBM (Optuna TPE)
+make evaluate                 # porte qualité sur le modèle du registry
 
 # Terminal 3 — API d'inférence
 make api                      # http://localhost:8000/docs
+
+# Qualité du code
+make lint                     # ruff check
+make format                   # ruff format
 ```
 
 ## Feuille de route des TP
@@ -178,7 +186,22 @@ make api                      # http://localhost:8000/docs
 | S12 | `src/mlproject/api.py` | Exposer le modèle via FastAPI ✅ |
 | S14 | `src/docker-compose.yml` | Orchestrer la stack |
 | S14bis | `src/frontend/app.py` | Frontend Streamlit |
+| S8 | `src/docker/Dockerfile.train` | Conteneuriser l'entraînement |
+| S12 | `src/mlproject/api.py` | Exposer le modèle via FastAPI ✅ |
+| S14 | `src/docker-compose.yml` | Orchestrer la stack |
+| S14bis | `src/frontend/app.py` | Frontend Streamlit |
 | S17 | `src/dags/retrain_dag.py` | Planifier le ré-entraînement avec Airflow |
+| S18 | `.github/workflows/ci_cd.yaml` | Pipeline CI/CD GitHub Actions ✅ |
+
+## CI/CD
+
+Le pipeline GitHub Actions (`.github/workflows/ci_cd.yaml`) se déclenche sur chaque push et PR vers `master` :
+
+| Étape | Outil | Détail |
+|---|---|---|
+| Lint | `ruff check` | Erreurs de syntaxe et logiques |
+| Format | `ruff format --check` | Cohérence du style |
+| Import check | `python -c "..."` | Vérifie que le projet s'importe |
 
 ## Suivi GitHub
 
