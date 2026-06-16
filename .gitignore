@@ -19,6 +19,7 @@ src/mlproject/*
 !src/mlproject/features.py
 !src/mlproject/data.py
 !src/mlproject/train.py
+!src/mlproject/train_models.py
 *.png
 
 

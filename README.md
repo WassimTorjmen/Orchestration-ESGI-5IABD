@@ -87,6 +87,20 @@ L'intérêt de ce problème est double : il illustre un cas de classification bi
 - `Title` extrait de `Name` (Mr / Mrs / Miss / Master / Rare) — prédicteur fort lié au genre et à l'âge
 - `StandardScaler` → `RobustScaler` — robuste aux valeurs aberrantes de `Fare` (plage 0–512)
 
+### S5 — MLflow Tracking (régression logistique)
+
+Suivi des expériences ajouté dans `train.py` : paramètres (`C`, `max_iter`), métriques (`f1`, `roc_auc`), modèle et matrice de confusion loggués dans MLflow.
+
+### S7 — Comparaison de modèles (GridSearchCV, cv=3, scoring=roc_auc)
+
+| Modèle | F1 | ROC AUC | Meilleurs hyperparamètres |
+|---|---|---|---|
+| Random Forest | 0.766 | 0.842 | `max_depth=None, min_samples_leaf=2, n_estimators=100` |
+| **XGBoost** ✓ | 0.739 | **0.859** | `learning_rate=0.01, max_depth=3, n_estimators=200` |
+| LightGBM | 0.766 | 0.832 | `learning_rate=0.1, n_estimators=100, num_leaves=31` |
+
+**XGBoost** est le meilleur modèle (ROC AUC = 0.859). Le modèle gagnant est enregistré dans le Model Registry MLflow sous `titanic-classifier` et sauvegardé dans `models/model.joblib`. Chaque run inclut : matrice de confusion, rapport de classification, et summary plot SHAP (importance des variables).
+
 ## Mise en route
 
 ```bash
@@ -98,10 +112,10 @@ uv run python -m mlproject.train               # entraîne la baseline -> affich
 
 | Séance | Fichier à compléter | Objectif |
 |---|---|---|
-| S0 | `src/mlproject/config.py` | Brancher le dataset Titanic |
-| S5 | `src/mlproject/train.py` | Suivi d'expériences MLflow |
+| S0 | `src/mlproject/config.py` | Brancher le dataset Titanic ✅ |
+| S5 | `src/mlproject/train.py` | Suivi d'expériences MLflow ✅ |
 | S6 | `src/mlproject/train_optuna.py` | Optimisation Optuna + Model Registry |
-| S7 | `src/mlproject/train_models.py` | Comparaison de modèles (GridSearchCV) + SHAP |
+| S7 | `src/mlproject/train_models.py` | Comparaison de modèles (GridSearchCV) + SHAP ✅ |
 | S8 | `src/docker/Dockerfile.train` | Conteneuriser l'entraînement |
 | S12 | `src/mlproject/api.py` | Exposer le modèle via FastAPI |
 | S14 | `src/docker-compose.yml` | Orchestrer la stack |
