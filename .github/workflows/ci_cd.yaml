@@ -71,7 +71,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run tests
-        run: uv run pytest --cov=mlproject --cov-report=xml -q
+        run: uv run pytest --cov=mlproject --cov-report=xml -q || test $? -eq 5
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4

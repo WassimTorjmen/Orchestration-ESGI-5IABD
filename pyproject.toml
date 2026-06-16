@@ -33,6 +33,7 @@ dev = [
 
 [tool.ruff]
 line-length = 100
+src = ["src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
@@ -40,6 +41,10 @@ select = ["E", "F", "I"]
 [tool.mypy]
 python_version = "3.12"
 ignore_missing_imports = true
+# mlflow stubs ne couvrent pas mlflow.data.*
+[[tool.mypy.overrides]]
+module = "mlflow.*"
+ignore_errors = true
 
 [build-system]
 requires = ["hatchling"]
