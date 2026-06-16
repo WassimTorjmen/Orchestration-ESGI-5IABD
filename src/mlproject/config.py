@@ -38,3 +38,7 @@ MLFLOW_EXPERIMENT_TAGS: dict[str, str] = dict(
     pair.split("=", 1) for pair in _tags_raw.split(",") if "=" in pair
 )
 MODEL_NAME = os.getenv("MODEL_NAME", "titanic-classifier")
+
+# Seuils de la porte qualite (mlproject.evaluate)
+EVAL_ROC_AUC_MIN = float(os.getenv("EVAL_ROC_AUC_MIN", "0.65"))
+EVAL_F1_MIN = float(os.getenv("EVAL_F1_MIN", "0.55"))

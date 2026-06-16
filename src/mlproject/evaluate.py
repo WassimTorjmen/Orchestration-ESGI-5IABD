@@ -26,16 +26,9 @@ import mlflow.models
 from mlflow.exceptions import MlflowException
 from mlflow.models import MetricThreshold
 
-from mlproject.config import (
-    DATA_PATH,
-    EVAL_F1_MIN,
-    EVAL_ROC_AUC_MIN,
-    MLFLOW_EXPERIMENT,
-    MLFLOW_TRACKING_URI,
-    MODEL_NAME,
-    TARGET,
-)
+from mlproject.config import DATA_PATH, EVAL_F1_MIN, EVAL_ROC_AUC_MIN, MODEL_NAME, TARGET
 from mlproject.data import load_data, split
+from mlproject.tracking import setup_experiment
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -73,11 +66,10 @@ def build_thresholds() -> dict[str, MetricThreshold]:
     dict of str to MetricThreshold
         Seuils minimaux sur ``roc_auc`` et ``f1_score``.
     """
-    # TODO (S11-1) : retourner {
-    #     "roc_auc": MetricThreshold(threshold=EVAL_ROC_AUC_MIN, greater_is_better=True),
-    #     "f1_score": MetricThreshold(threshold=EVAL_F1_MIN, greater_is_better=True),
-    # }
-    raise NotImplementedError
+    return {
+        "roc_auc": MetricThreshold(threshold=EVAL_ROC_AUC_MIN, greater_is_better=True),
+        "f1_score": MetricThreshold(threshold=EVAL_F1_MIN, greater_is_better=True),
+    }
 
 
 def evaluate_model(model_uri: str | None = None, validate: bool = True):
@@ -103,30 +95,26 @@ def evaluate_model(model_uri: str | None = None, validate: bool = True):
     eval_df = x_test.copy()
     eval_df[TARGET] = y_test.values
 
-    # Configuration du tracking (inline, comme train_models / train_optuna).
-    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-    mlflow.set_experiment(MLFLOW_EXPERIMENT)
+    setup_experiment()
     model_uri = model_uri or latest_model_uri()
     logger.info("Evaluation de %s", model_uri)
 
     with mlflow.start_run(run_name="evaluate"):
-        # TODO (S11-2) : dans le run courant
-        #   a) tracabilite -> logger le jeu d'evaluation comme dataset MLflow :
-        #        dataset = mlflow.data.from_pandas(eval_df, source=str(DATA_PATH),
-        #                                          targets=TARGET, name="eval")
-        #        mlflow.log_input(dataset, context="evaluation")
-        #   b) evaluer le modele :
-        #        result = mlflow.models.evaluate(model_uri, data=eval_df,
-        #            targets=TARGET, model_type="classifier", evaluators=["default"])
-        #        logger.info("f1_score=%.3f roc_auc=%.3f",
-        #                    result.metrics["f1_score"], result.metrics["roc_auc"])
-        #
-        # TODO (S11-3) : si validate, appliquer la porte qualite :
-        #        mlflow.validate_evaluation_results(build_thresholds(), result)
-        #   (leve une exception si un seuil n'est pas atteint)
-        #
-        # Enfin : return result
-        raise NotImplementedError
+        dataset = mlflow.data.from_pandas(eval_df, source=str(DATA_PATH),
+                                          targets=TARGET, name="eval")
+        mlflow.log_input(dataset, context="evaluation")
+
+        result = mlflow.models.evaluate(
+            model_uri, data=eval_df, targets=TARGET,
+            model_type="classifier", evaluators=["default"],
+        )
+        logger.info("f1_score=%.3f  roc_auc=%.3f",
+                    result.metrics["f1_score"], result.metrics["roc_auc"])
+
+        if validate:
+            mlflow.validate_evaluation_results(build_thresholds(), result)
+
+        return result
 
 
 def main() -> None:

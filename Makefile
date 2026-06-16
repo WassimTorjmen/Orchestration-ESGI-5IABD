@@ -34,7 +34,7 @@ RESET  := $(shell printf '\033[0m')
 
 .PHONY: help \
         check-uv check-venv venv-create install sync deps-sync lock reset-env doctor \
-        data train train-models train-optuna mlflow api frontend \
+        data train train-models train-optuna evaluate evaluate-no-validate mlflow api frontend \
         docker-build docker-run docker-up docker-down \
         lint format type test check
 
@@ -114,6 +114,12 @@ train-models: ## Compare RF / XGBoost / LightGBM (GridSearchCV) + SHAP (CV=.. SC
 
 train-optuna: ## Optimise RF / XGBoost / LightGBM avec Optuna (N_TRIALS=.. CV=..)
 	$(PYTHON) -m mlproject.train_optuna --n-trials $(N_TRIALS) --cv $(CV)
+
+evaluate: ## Evalue le modele du registry et applique la porte qualite
+	$(PYTHON) -m mlproject.evaluate
+
+evaluate-no-validate: ## Evalue le modele du registry sans porte qualite
+	$(PYTHON) -m mlproject.evaluate --no-validate
 
 mlflow: ## Demarre le serveur MLflow sur le port 5000
 	$(RUN) mlflow server --host 127.0.0.1 --port $(MLFLOW_PORT) \
