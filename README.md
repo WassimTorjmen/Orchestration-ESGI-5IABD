@@ -52,9 +52,9 @@ L'intérêt de ce problème est double : il illustre un cas de classification bi
 ├── models/                      # modèles entraînés (gitignore)
 ├── .github/
 │   └── workflows/
-│       └── ci_cd.yaml           # pipeline CI GitHub Actions
+│       └── ci.yml               # pipeline CI GitHub Actions (S18)
 └── src/
-    ├── data/                    # Titanic-Dataset.csv (gitignore)
+    ├── data/                    # Titanic-Dataset.csv (versionné)
     ├── mlproject/
     │   ├── config.py            # configuration dataset et chemins  ← TP S0
     │   ├── data.py              # chargement et split
@@ -186,22 +186,27 @@ make format                   # ruff format
 | S12 | `src/mlproject/api.py` | Exposer le modèle via FastAPI ✅ |
 | S14 | `src/docker-compose.yml` | Orchestrer la stack |
 | S14bis | `src/frontend/app.py` | Frontend Streamlit |
-| S8 | `src/docker/Dockerfile.train` | Conteneuriser l'entraînement |
-| S12 | `src/mlproject/api.py` | Exposer le modèle via FastAPI ✅ |
-| S14 | `src/docker-compose.yml` | Orchestrer la stack |
-| S14bis | `src/frontend/app.py` | Frontend Streamlit |
 | S17 | `src/dags/retrain_dag.py` | Planifier le ré-entraînement avec Airflow |
-| S18 | `.github/workflows/ci_cd.yaml` | Pipeline CI/CD GitHub Actions ✅ |
+| S18 | `.github/workflows/ci.yml` | Pipeline CI GitHub Actions ✅ |
 
-## CI/CD
+## CI (S18)
 
-Le pipeline GitHub Actions (`.github/workflows/ci_cd.yaml`) se déclenche sur chaque push et PR vers `master` :
+Le pipeline GitHub Actions (`.github/workflows/ci.yml`) se déclenche sur chaque push et pull request.
+
+**Job `quality`** — quality gate (bloquant) :
 
 | Étape | Outil | Détail |
 |---|---|---|
-| Lint | `ruff check` | Erreurs de syntaxe et logiques |
-| Format | `ruff format --check` | Cohérence du style |
-| Import check | `python -c "..."` | Vérifie que le projet s'importe |
+| Lint | `ruff check src/` | Erreurs de syntaxe et logiques |
+| Types | `mypy src/mlproject` | Vérification statique |
+| Tests | `pytest -q` | Suite de tests (exit 5 = aucun test, acceptable) |
+
+**Job `train`** — Continuous Training (déclenché uniquement si `quality` est vert) :
+
+| Étape | Détail |
+|---|---|
+| Entraînement baseline | `python -m mlproject.train` (dataset versionné dans `src/data/`) |
+| Artefact | `models/model.joblib` téléchargeable depuis l'onglet Actions |
 
 ## Suivi GitHub
 

@@ -72,7 +72,7 @@ venv-create: check-uv ## Cree un virtualenv vide (.venv)
 
 deps-sync: check-uv ## Synchronise les dependances projet + dev (uv sync)
 	@echo "$(YELLOW)>> Synchronisation des dependances...$(RESET)"
-	uv sync --extra dev
+	uv sync --extra train --extra api --extra frontend --extra dev
 	@echo "$(GREEN)[OK] Dependances installees$(RESET)"
 
 install: deps-sync ## Cree le venv et installe le projet + dev (alias)
@@ -149,16 +149,16 @@ frontend: ## Lance le frontend Streamlit (voir FRONTEND_PORT, API_URL)
 # ==============================================================================
 
 docker-build: ## Construit l'image d'entrainement
-	# TODO (S8) : docker build -f docker/Dockerfile.train -t mlproject-train .
+	docker build -f src/docker/Dockerfile.train -t mlproject-train .
 
 docker-run: ## Lance l'entrainement en conteneur
-	# TODO (S8) : docker run --rm -v "$(CURDIR)/../models:/app/models" mlproject-train
+	docker run --rm -v "$(CURDIR)/models:/app/models" mlproject-train
 
 docker-up: ## Demarre la stack (mlflow, api, frontend)
-	# TODO (S14) : docker compose -f docker-compose.yml up -d --build mlflow api frontend
+	docker compose up -d --build mlflow api frontend
 
 docker-down: ## Arrete et supprime les conteneurs (conserve les volumes)
-	# TODO (S14) : docker compose -f docker-compose.yml down
+	docker compose down
 
 
 # ==============================================================================

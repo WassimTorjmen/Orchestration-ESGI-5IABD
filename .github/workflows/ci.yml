@@ -48,7 +48,7 @@ jobs:
 
       - name: Installation des dependances (projet + dev)
         # S18-2 : installe le projet et les outils dev (ruff, mypy, pytest)
-        run: uv sync --all-extras
+        run: uv sync --extra train --extra api --extra frontend --extra dev
 
       - name: Lint (ruff)
         # S18-3 : verifie le style du package mlproject avec ruff
@@ -82,7 +82,7 @@ jobs:
           cache-dependency-glob: uv.lock
 
       - name: Installation des dependances
-        run: uv sync
+        run: uv sync --extra train
 
       - name: Donnees + entrainement de la baseline
         # S18-7 : entraine la baseline (le dataset est versionne dans src/data/)

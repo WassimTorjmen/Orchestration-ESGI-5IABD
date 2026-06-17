@@ -29,10 +29,15 @@ ml: dict = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    ml["model"] = joblib.load(MODEL_DIR / "model.joblib")
-    logger.info("Modèle chargé")
+    model_path = MODEL_DIR / "model.joblib"
     try:
-        mlflow.set_tracking_uri(f"sqlite:///{ROOT}/mlflow.db")
+        ml["model"] = joblib.load(model_path)
+        logger.info("Modèle chargé depuis %s", model_path)
+    except FileNotFoundError:
+        logger.warning("model.joblib introuvable — /predict retournera 503")
+    try:
+        tracking_uri = os.environ.get("MLFLOW_TRACKING_URI", f"sqlite:///{ROOT}/mlflow.db")
+        mlflow.set_tracking_uri(tracking_uri)
         client = mlflow.MlflowClient()
         versions = client.get_latest_versions(MODEL_NAME)
         ml["version"] = str(versions[0].version) if versions else "unknown"

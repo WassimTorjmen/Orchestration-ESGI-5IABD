@@ -16,8 +16,8 @@ ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(ROOT / ".env")
 
 # TODO (S0-1) : chemin vers votre fichier de donnees (CSV) place dans data/
-DATA_PATH = ROOT / "src" / "data" / "Titanic-Dataset.csv"
-MODEL_DIR = ROOT / "models"
+DATA_PATH = Path(os.getenv("DATA_PATH", str(ROOT / "src" / "data" / "Titanic-Dataset.csv")))
+MODEL_DIR = Path(os.getenv("MODEL_DIR", str(ROOT / "models")))
 
 # TODO (S0-2) : nom de la colonne cible binaire (valeurs 0/1)
 TARGET = "Survived"
