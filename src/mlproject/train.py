@@ -54,7 +54,12 @@ def train(c: float = 1.0, max_iter: int = 1000) -> dict:
 
         mlflow.log_params({"c": c, "max_iter": max_iter, "model": "logreg"})
         mlflow.log_metrics(metrics)
-        mlflow.sklearn.log_model(model, name="model", registered_model_name=MODEL_NAME)
+        mlflow.sklearn.log_model(
+            model,
+            name="model",
+            registered_model_name=MODEL_NAME,
+            skops_trusted_types=["mlproject.features.FeatureEngineer", "numpy.dtype"],
+        )
 
         ConfusionMatrixDisplay.from_predictions(y_test, preds)
         plt.savefig("confusion.png")
