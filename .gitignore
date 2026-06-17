@@ -24,7 +24,7 @@ src/mlproject/*
 !src/mlproject/train_optuna.py
 !src/mlproject/evaluate.py
 !src/mlproject/api.py
-
+.github/workflows/cd.yml
 *.png
 
 
