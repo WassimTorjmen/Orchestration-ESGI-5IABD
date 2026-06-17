@@ -18,6 +18,7 @@ dependencies = [
 [project.optional-dependencies]
 train = [
     "shap>=0.44",
+    "numba>=0.59",
     "matplotlib>=3.8",
     "optuna>=3.5",
 ]
