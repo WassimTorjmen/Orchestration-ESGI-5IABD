@@ -60,6 +60,10 @@ services:
       dockerfile: src/docker/Dockerfile.frontend
     environment:
       API_URL: http://api:8000
+      MLFLOW_URL: http://mlflow:5000
+      MLFLOW_PUBLIC_URL: ${MLFLOW_PUBLIC_URL:-http://localhost:5000}
+      AIRFLOW_PUBLIC_URL: ${AIRFLOW_PUBLIC_URL:-http://localhost:8080}
+      API_PUBLIC_URL: ${API_PUBLIC_URL:-http://localhost:8000}
     ports:
       - "8501:8501"
     depends_on:
