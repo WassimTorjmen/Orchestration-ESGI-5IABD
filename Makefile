@@ -107,9 +107,6 @@ data: ## Prepare/genere le jeu de donnees dans data/
 train: ## Entraine la baseline -> models/model.joblib (C=.. MAX_ITER=..)
 	$(PYTHON) -m mlproject.train --c $(C) --max-iter $(MAX_ITER)
 
-train-baseline: ## Entraine la baseline perso -> models/model_baseline.joblib (C=.. MAX_ITER=..)
-	$(PYTHON) -m mlproject.train_baseline --c $(C) --max-iter $(MAX_ITER)
-
 train-models: ## Compare RF / XGBoost / LightGBM (GridSearchCV) + SHAP (CV=.. SCORING=..)
 	$(PYTHON) -m mlproject.train_models --cv $(CV) --scoring $(SCORING)
 
