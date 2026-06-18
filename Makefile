@@ -35,7 +35,8 @@ RESET  := $(shell printf '\033[0m')
 .PHONY: help \
         check-uv check-venv venv-create install sync deps-sync lock reset-env doctor \
         data train train-models train-optuna evaluate evaluate-no-validate mlflow api frontend \
-        docker-build docker-run docker-up docker-down \
+        docker-build docker-run docker-up docker-train docker-down \
+        airflow-init airflow-up airflow-down \
         lint format type test check
 
 
@@ -141,7 +142,7 @@ api-info: ## Affiche la version du modele servi (/model-info)
 	curl -s http://$(API_HOST):$(API_PORT)/model-info | python3 -m json.tool
 
 frontend: ## Lance le frontend Streamlit (voir FRONTEND_PORT, API_URL)
-	# TODO (S14bis) : $(RUN) streamlit run frontend/app.py --server.port $(FRONTEND_PORT)
+	$(RUN) streamlit run src/frontend/app.py --server.port $(FRONTEND_PORT)
 
 
 # ==============================================================================
@@ -151,14 +152,42 @@ frontend: ## Lance le frontend Streamlit (voir FRONTEND_PORT, API_URL)
 docker-build: ## Construit l'image d'entrainement
 	docker build -f src/docker/Dockerfile.train -t mlproject-train .
 
-docker-run: ## Lance l'entrainement en conteneur
+docker-run: ## Lance l'entrainement en conteneur (standalone)
 	docker run --rm -v "$(CURDIR)/models:/app/models" mlproject-train
+
+docker-train: ## Lance l'entrainement via docker compose (alimente le volume)
+	docker compose --profile train run --rm train
 
 docker-up: ## Demarre la stack (mlflow, api, frontend)
 	docker compose up -d --build mlflow api frontend
 
 docker-down: ## Arrete et supprime les conteneurs (conserve les volumes)
 	docker compose down
+
+
+# ==============================================================================
+# Airflow  [S17]
+# ==============================================================================
+
+AIRFLOW_DAGS_DIR := $(CURDIR)/src/dags
+
+airflow-init: ## Initialise Airflow (a lancer une seule fois)
+	@echo "$(YELLOW)>> Initialisation Airflow...$(RESET)"
+	mkdir -p airflow/logs airflow/plugins
+	echo "AIRFLOW_UID=$(shell id -u)" > airflow/.env
+	echo "AIRFLOW_DAGS_FOLDER=$(AIRFLOW_DAGS_DIR)" >> airflow/.env
+	curl -LfO 'https://airflow.apache.org/docs/apache-airflow/stable/docker-compose.yaml' \
+	  --output-dir airflow/
+	cd airflow && docker compose up airflow-init
+	@echo "$(GREEN)[OK] Airflow initialise$(RESET)"
+
+airflow-up: ## Demarre Airflow (UI sur http://localhost:8080)
+	@echo "$(YELLOW)>> Demarrage Airflow...$(RESET)"
+	cd airflow && AIRFLOW__CORE__DAGS_FOLDER=$(AIRFLOW_DAGS_DIR) docker compose up -d
+	@echo "$(GREEN)[OK] Airflow demarre : http://localhost:8080 (airflow/airflow)$(RESET)"
+
+airflow-down: ## Arrete Airflow
+	cd airflow && docker compose down
 
 
 # ==============================================================================

@@ -49,10 +49,12 @@ L'intérêt de ce problème est double : il illustre un cas de classification bi
 ├── Makefile                     # commandes du projet (install, train, api…)
 ├── pyproject.toml               # dépendances Python (uv)
 ├── uv.lock
+├── docker-compose.yml           # stack complète (mlflow, train, api, frontend) ← TP S14
 ├── models/                      # modèles entraînés (gitignore)
 ├── .github/
 │   └── workflows/
-│       └── ci.yml               # pipeline CI GitHub Actions (S18)
+│       ├── ci.yml               # pipeline CI GitHub Actions                    ← TP S18
+│       └── cd.yml               # pipeline CD — build & push image GHCR         ← TP S19
 └── src/
     ├── data/                    # Titanic-Dataset.csv (versionné)
     ├── mlproject/
@@ -63,15 +65,14 @@ L'intérêt de ce problème est double : il illustre un cas de classification bi
     │   ├── train.py             # entraînement baseline (MLflow)    ← TP S5
     │   ├── train_optuna.py      # optimisation Optuna + Registry    ← TP S6
     │   ├── train_models.py      # comparaison de modèles + SHAP     ← TP S7
-    │   ├── api.py               # API FastAPI                       ← TP S12
-    │   └── evaluation.py        # métriques et plots SHAP
+    │   ├── evaluate.py          # porte qualité MLflow              ← TP S11
+    │   └── api.py               # API FastAPI                       ← TP S12
     ├── frontend/
     │   └── app.py               # interface Streamlit               ← TP S14bis
     ├── docker/
     │   ├── Dockerfile.train                                         ← TP S8
     │   ├── Dockerfile.api
     │   └── Dockerfile.frontend
-    ├── docker-compose.yml                                           ← TP S14
     └── dags/
         └── retrain_dag.py       # DAG Airflow de ré-entraînement   ← TP S17
 ```
@@ -169,44 +170,91 @@ make evaluate                 # porte qualité sur le modèle du registry
 # Terminal 3 — API d'inférence
 make api                      # http://localhost:8000/docs
 
+# Terminal 4 — frontend Streamlit
+make frontend                 # http://localhost:8501
+
+# Docker (stack complète)
+make docker-up                # mlflow + api + frontend en arrière-plan
+make docker-train             # entraîner le modèle dans un conteneur
+make docker-down              # arrêter la stack
+
+# Airflow (ré-entraînement planifié)
+make airflow-init             # initialiser la base Airflow (première fois)
+make airflow-up               # démarrer l'UI Airflow → http://localhost:8080
+make airflow-down             # arrêter Airflow
+
 # Qualité du code
 make lint                     # ruff check
 make format                   # ruff format
+make type                     # mypy
+make check                    # lint + types + tests
 ```
 
 ## Feuille de route des TP
 
-| Séance | Fichier à compléter | Objectif |
-|---|---|---|
-| S0 | `src/mlproject/config.py` | Brancher le dataset Titanic ✅ |
-| S5 | `src/mlproject/train.py`, `tracking.py` | Suivi MLflow + centralisation config + dataset lineage ✅ |
-| S6 | `src/mlproject/train_optuna.py` | Optimisation Optuna (TPE) + Model Registry ✅ |
-| S7 | `src/mlproject/train_models.py` | Comparaison de modèles (GridSearchCV) + SHAP ✅ |
-| S8 | `src/docker/Dockerfile.train` | Conteneuriser l'entraînement |
-| S12 | `src/mlproject/api.py` | Exposer le modèle via FastAPI ✅ |
-| S14 | `src/docker-compose.yml` | Orchestrer la stack |
-| S14bis | `src/frontend/app.py` | Frontend Streamlit |
-| S17 | `src/dags/retrain_dag.py` | Planifier le ré-entraînement avec Airflow |
-| S18 | `.github/workflows/ci.yml` | Pipeline CI GitHub Actions ✅ |
+| Séance | Fichier | Objectif | Statut |
+|---|---|---|---|
+| S0 | `src/mlproject/config.py` | Brancher le dataset Titanic | ✅ |
+| S5 | `src/mlproject/train.py`, `tracking.py` | Suivi MLflow + dataset lineage | ✅ |
+| S6 | `src/mlproject/train_optuna.py` | Optimisation Optuna (TPE) + Registry | ✅ |
+| S7 | `src/mlproject/train_models.py` | Comparaison de modèles + SHAP | ✅ |
+| S8 | `src/docker/Dockerfile.*` | Conteneuriser l'entraînement + API + frontend | ✅ |
+| S11 | `src/mlproject/evaluate.py` | Porte qualité automatisée | ✅ |
+| S12 | `src/mlproject/api.py` | Exposer le modèle via FastAPI | ✅ |
+| S14 | `docker-compose.yml` | Orchestrer la stack complète | ✅ |
+| S14bis | `src/frontend/app.py` | Frontend Streamlit | ✅ |
+| S17 | `src/dags/retrain_dag.py` | Planifier le ré-entraînement avec Airflow | ✅ |
+| S18 | `.github/workflows/ci.yml` | Pipeline CI GitHub Actions | ✅ |
+| S19 | `.github/workflows/cd.yml` | Pipeline CD — build & push image GHCR | ✅ |
 
-## CI (S18)
+## CI/CD
 
-Le pipeline GitHub Actions (`.github/workflows/ci.yml`) se déclenche sur chaque push et pull request.
+### S18 — Intégration continue (`ci.yml`)
 
-**Job `quality`** — quality gate (bloquant) :
+Se déclenche sur chaque push et pull request.
+
+**Job `quality`** — bloquant :
 
 | Étape | Outil | Détail |
 |---|---|---|
 | Lint | `ruff check src/` | Erreurs de syntaxe et logiques |
 | Types | `mypy src/mlproject` | Vérification statique |
-| Tests | `pytest -q` | Suite de tests (exit 5 = aucun test, acceptable) |
+| Tests | `pytest -q` | Suite de tests |
 
-**Job `train`** — Continuous Training (déclenché uniquement si `quality` est vert) :
+**Job `train`** — déclenché si `quality` est vert :
 
 | Étape | Détail |
 |---|---|
 | Entraînement baseline | `python -m mlproject.train` (dataset versionné dans `src/data/`) |
 | Artefact | `models/model.joblib` téléchargeable depuis l'onglet Actions |
+
+### S19 — Livraison continue (`cd.yml`)
+
+Se déclenche sur push vers `master` et sur les tags `vX.Y.Z`.
+
+| Étape | Action | Détail |
+|---|---|---|
+| Login | `docker/login-action@v3` | Authentification GHCR avec `GITHUB_TOKEN` |
+| Tags | `docker/metadata-action@v5` | `latest`, `sha-xxxx`, version sémantique |
+| Build & push | `docker/build-push-action@v6` | Image `mlproject-api` sur `ghcr.io` avec cache GHA |
+
+```bash
+# Déclencher une livraison versionnée
+git tag v1.0.0 && git push --tags
+# Puis : docker pull ghcr.io/WassimTorjmen/orchestration-esgi-5iabd/mlproject-api:latest
+```
+
+### S17 — Airflow (`retrain_dag.py`)
+
+DAG `model_retraining` planifié tous les lundis à 3h (`0 3 * * 1`) :
+
+```
+prepare_data → train → check_quality
+```
+
+- `prepare_data` : vérifie et charge le dataset
+- `train` : lance `mlproject.train.train()`, pousse le f1 dans XCom
+- `check_quality` : lit le f1 depuis XCom, échoue si `f1 < 0.65`
 
 ## Suivi GitHub
 

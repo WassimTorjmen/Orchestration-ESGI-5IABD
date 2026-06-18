@@ -14,18 +14,22 @@
 .claude/settings.local.json
 src/*
 !src/mlproject/
+!src/dags
 !src/data/
 !src/docker/
 !src/frontend/
 src/mlproject/*
+!src/mlproject/__init__.py
 !src/mlproject/config.py
 !src/mlproject/features.py
 !src/mlproject/data.py
 !src/mlproject/train.py
+!src/mlproject/train_baseline.py
 !src/mlproject/train_models.py
 !src/mlproject/tracking.py
 !src/mlproject/train_optuna.py
 !src/mlproject/evaluate.py
+!src/mlproject/evaluation.py
 !src/mlproject/api.py
 *.png
 
@@ -73,6 +77,7 @@ artifacts/
 # ==============================================================================
 # Airflow
 # ==============================================================================
+airflow/
 logs/
 airflow.db
 airflow.cfg
