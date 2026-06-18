@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 import os
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 import joblib
 import mlflow
@@ -25,6 +26,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 ml: dict = {}
+predictions_log: list[dict] = []
 
 
 @asynccontextmanager
@@ -99,7 +101,19 @@ def predict(features: Features) -> PredictionOut:
         raise HTTPException(status_code=503, detail="Modele non charge")
     row = pd.DataFrame([features.model_dump()])
     proba = float(model.predict_proba(row)[0, 1])
-    return PredictionOut(prediction=int(proba >= 0.5), probability=round(proba, 4))
+    result = PredictionOut(prediction=int(proba >= 0.5), probability=round(proba, 4))
+    predictions_log.append({
+        "timestamp": datetime.utcnow().isoformat(),
+        **features.model_dump(),
+        "prediction": result.prediction,
+        "probability": result.probability,
+    })
+    return result
+
+
+@app.get("/predictions")
+def get_predictions() -> list[dict]:
+    return predictions_log
 
 
 @app.get("/model-info")
