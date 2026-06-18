@@ -4,6 +4,7 @@ Projet MLOps ESGI 5IABD — Wassim Torjmen
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -230,12 +231,14 @@ with st.sidebar:
     )
     page = st.radio(
         "nav",
+        key="nav_page",
         options=[
             "🏠  Accueil",
             "🎯  Prédiction",
             "📊  Évaluation",
             "📈  Historique",
             "🔗  Services",
+            "📋  À propos",
         ],
         label_visibility="collapsed",
     )
@@ -248,7 +251,7 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     api_ok = check_service(API_URL)
-    mlflow_ok = check_service(MLFLOW_URL)
+    mlflow_ok = check_service(MLFLOW_URL, "/")
     airflow_ok = check_service(AIRFLOW_PUBLIC, "/health")
 
     for label, ok in [
@@ -297,28 +300,27 @@ if "Accueil" in page:
     st.markdown("""
     <div style='background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 55%,#0f172a 100%);
          border-radius:16px;padding:40px 36px;text-align:center;
-         border:1px solid #1e3a5f;margin-bottom:28px;'>
+         border:1px solid #1e3a5f;margin-bottom:16px;'>
       <h1 style='color:white;font-size:38px;margin:0 0 8px 0;letter-spacing:-1px;'>
         🚢 Titanic Survival Classifier
       </h1>
-      <p style='color:#94a3b8;font-size:16px;margin:0 0 20px 0;max-width:600px;
+      <p style='color:#94a3b8;font-size:16px;margin:0;max-width:600px;
                 margin-left:auto;margin-right:auto;'>
         Modèle de Machine Learning entraîné sur les données historiques du naufrage de
         1912 · API temps réel · Pipeline MLOps complet
       </p>
-      <div style='display:flex;justify-content:center;gap:12px;flex-wrap:wrap;'>
-        <a href='?page=prediction' style='background:#06b6d4;color:white;padding:10px 22px;
-           border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;'>
-          🎯 Faire une prédiction
-        </a>
-        <a href='?page=evaluation' style='background:#1e293b;color:#e2e8f0;
-           padding:10px 22px;border-radius:8px;text-decoration:none;
-           font-weight:700;font-size:14px;border:1px solid #334155;'>
-          📊 Voir les métriques
-        </a>
-      </div>
     </div>
     """, unsafe_allow_html=True)
+
+    _hb1, _hb2, _hb3, _hb4 = st.columns([2, 2, 1, 1])
+    with _hb1:
+        if st.button("🎯 Faire une prédiction", type="primary", use_container_width=True):
+            st.session_state.nav_page = "🎯  Prédiction"
+            st.rerun()
+    with _hb2:
+        if st.button("📊 Voir les métriques", use_container_width=True):
+            st.session_state.nav_page = "📊  Évaluation"
+            st.rerun()
 
     # ── Stats row
     _model_info = get_model_info()
@@ -429,56 +431,44 @@ if "Accueil" in page:
 
     st.divider()
 
-    # ── Quick actions
+    # ── Quick actions (single HTML block to avoid Streamlit column whitespace)
     st.markdown(
         "<h3 style='color:#e2e8f0;margin-bottom:12px;'>⚡ Accès rapide</h3>",
         unsafe_allow_html=True,
     )
-    qa1, qa2, qa3, qa4 = st.columns(4)
-    with qa1:
-        st.markdown(
-            f"<a href='{API_PUBLIC}/docs' target='_blank'"
-            f" style='display:block;background:#1e293b;border:1px solid #06b6d4;"
-            f"border-radius:10px;padding:16px;text-align:center;text-decoration:none;'>"
-            f"<p style='font-size:24px;margin:0;'>⚡</p>"
-            f"<p style='color:#06b6d4;font-weight:700;margin:6px 0 2px 0;font-size:13px;'>"
-            f"API Swagger</p>"
-            f"<p style='color:#64748b;font-size:11px;margin:0;'>Tester l'API</p></a>",
-            unsafe_allow_html=True,
-        )
-    with qa2:
-        st.markdown(
-            f"<a href='{MLFLOW_PUBLIC}' target='_blank'"
-            f" style='display:block;background:#1e293b;border:1px solid #818cf8;"
-            f"border-radius:10px;padding:16px;text-align:center;text-decoration:none;'>"
-            f"<p style='font-size:24px;margin:0;'>📊</p>"
-            f"<p style='color:#818cf8;font-weight:700;margin:6px 0 2px 0;font-size:13px;'>"
-            f"MLflow UI</p>"
-            f"<p style='color:#64748b;font-size:11px;margin:0;'>Expériences & Registry</p></a>",
-            unsafe_allow_html=True,
-        )
-    with qa3:
-        st.markdown(
-            f"<a href='{AIRFLOW_PUBLIC}' target='_blank'"
-            f" style='display:block;background:#1e293b;border:1px solid #f59e0b;"
-            f"border-radius:10px;padding:16px;text-align:center;text-decoration:none;'>"
-            f"<p style='font-size:24px;margin:0;'>🌀</p>"
-            f"<p style='color:#f59e0b;font-weight:700;margin:6px 0 2px 0;font-size:13px;'>"
-            f"Airflow UI</p>"
-            f"<p style='color:#64748b;font-size:11px;margin:0;'>DAGs & Pipelines</p></a>",
-            unsafe_allow_html=True,
-        )
-    with qa4:
-        st.markdown(
-            f"<a href='{API_PUBLIC}/health' target='_blank'"
-            f" style='display:block;background:#1e293b;border:1px solid #10b981;"
-            f"border-radius:10px;padding:16px;text-align:center;text-decoration:none;'>"
-            f"<p style='font-size:24px;margin:0;'>❤️</p>"
-            f"<p style='color:#10b981;font-weight:700;margin:6px 0 2px 0;font-size:13px;'>"
-            f"Health Check</p>"
-            f"<p style='color:#64748b;font-size:11px;margin:0;'>Statut API</p></a>",
-            unsafe_allow_html=True,
-        )
+    _card_style = (
+        "flex:1;background:#1e293b;border-radius:10px;padding:16px;"
+        "text-align:center;text-decoration:none;"
+    )
+    st.markdown(
+        f"<div style='display:flex;gap:12px;flex-wrap:wrap;'>"
+        f"<a href='{API_PUBLIC}/docs' target='_blank'"
+        f" style='{_card_style}border:1px solid #06b6d4;'>"
+        f"<p style='font-size:24px;margin:0;'>⚡</p>"
+        f"<p style='color:#06b6d4;font-weight:700;margin:6px 0 2px 0;font-size:13px;'>"
+        f"API Swagger</p>"
+        f"<p style='color:#64748b;font-size:11px;margin:0;'>Tester l'API</p></a>"
+        f"<a href='{MLFLOW_PUBLIC}' target='_blank'"
+        f" style='{_card_style}border:1px solid #818cf8;'>"
+        f"<p style='font-size:24px;margin:0;'>📊</p>"
+        f"<p style='color:#818cf8;font-weight:700;margin:6px 0 2px 0;font-size:13px;'>"
+        f"MLflow UI</p>"
+        f"<p style='color:#64748b;font-size:11px;margin:0;'>Expériences & Registry</p></a>"
+        f"<a href='{AIRFLOW_PUBLIC}' target='_blank'"
+        f" style='{_card_style}border:1px solid #f59e0b;'>"
+        f"<p style='font-size:24px;margin:0;'>🌀</p>"
+        f"<p style='color:#f59e0b;font-weight:700;margin:6px 0 2px 0;font-size:13px;'>"
+        f"Airflow UI</p>"
+        f"<p style='color:#64748b;font-size:11px;margin:0;'>DAGs & Pipelines</p></a>"
+        f"<a href='{API_PUBLIC}/health' target='_blank'"
+        f" style='{_card_style}border:1px solid #10b981;'>"
+        f"<p style='font-size:24px;margin:0;'>❤️</p>"
+        f"<p style='color:#10b981;font-weight:700;margin:6px 0 2px 0;font-size:13px;'>"
+        f"Health Check</p>"
+        f"<p style='color:#64748b;font-size:11px;margin:0;'>Statut API</p></a>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -972,3 +962,46 @@ docker compose --profile train run --rm train
 # Airflow
 cd ~/airflow && docker compose up -d
     """, language="bash")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE — À PROPOS
+# ══════════════════════════════════════════════════════════════════════════════
+elif "propos" in page:
+    st.subheader("📋 À propos du projet")
+
+    here = Path(__file__).parent
+    candidates = [here.parent / "README.md", here.parent.parent / "README.md"]
+    readme_path = next((p for p in candidates if p.exists()), None)
+    if readme_path:
+        st.markdown(readme_path.read_text(encoding="utf-8"))
+    else:
+        st.warning("⚠️ README.md introuvable.")
+        st.markdown(f"""
+### 🚢 Titanic Survival Classifier
+
+**Projet MLOps — ESGI 5IABD 2025/2026**
+Auteur : **{AUTHOR}**
+
+#### Objectif
+Entraîner et déployer un modèle de classification binaire préisant la survie
+des passagers du Titanic à travers un pipeline MLOps complet.
+
+#### Stack
+- **Python 3.12** · scikit-learn · pandas
+- **FastAPI** · uvicorn · Pydantic
+- **MLflow** · Model Registry · Tracking
+- **Airflow** · CeleryExecutor · DAG hebdomadaire
+- **Docker** · Docker Compose · multi-stage
+- **GitHub Actions** · CI (ruff · mypy · pytest) · CD (GHCR)
+
+#### Séances couvertes
+| Séance | Contenu |
+|--------|---------|
+| S11 | Features engineering |
+| S12 | API FastAPI `/predict` |
+| S13 | CI GitHub Actions |
+| S14 | Docker & Docker Compose |
+| S17 | Airflow DAG réentraînement |
+| S19 | CD pipeline GHCR |
+        """)
