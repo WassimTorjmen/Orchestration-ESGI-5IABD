@@ -80,8 +80,9 @@ with predict_tab:
 
         with col1:
             st.markdown('<div class="section-header">🎫 Voyage</div>', unsafe_allow_html=True)
+            _labels = {1: "1ère — Luxe 👑", 2: "2ème — Confort 🎩", 3: "3ème — Économique 🧳"}
             pclass = st.selectbox("🏷️ Classe", [1, 2, 3], index=2,
-                                  format_func=lambda x: {1: "1ère — Luxe 👑", 2: "2ème — Confort 🎩", 3: "3ème — Économique 🧳"}[x])
+                                  format_func=lambda x: _labels[x])
             fare = st.number_input("💰 Tarif (£)", min_value=0.0, value=30.0, step=1.0)
 
         with col2:
@@ -95,10 +96,13 @@ with predict_tab:
             st.markdown('<div class="section-header">👨‍👩‍👧 Famille</div>', unsafe_allow_html=True)
             sibsp = st.number_input("💑 Frères / conjoints à bord", min_value=0, value=0)
             parch = st.number_input("👶 Parents / enfants à bord", min_value=0, value=0)
+            _ports = {"S": "🇬🇧 Southampton", "C": "🇫🇷 Cherbourg", "Q": "🇮🇪 Queenstown"}
             embarked = st.selectbox("⚓ Port d'embarquement", ["S", "C", "Q"],
-                                    format_func=lambda x: {"S": "🇬🇧 Southampton", "C": "🇫🇷 Cherbourg", "Q": "🇮🇪 Queenstown"}[x])
+                                    format_func=lambda x: _ports[x])
 
-        submitted = st.form_submit_button("🔮 Lancer la prédiction", use_container_width=True, type="primary")
+        submitted = st.form_submit_button(
+            "🔮 Lancer la prédiction", use_container_width=True, type="primary"
+        )
 
     if submitted:
         family_size = sibsp + parch + 1
@@ -130,15 +134,18 @@ with predict_tab:
             st.divider()
 
             if prediction == 1:
-                st.markdown(
-                    '<div class="survivor-banner">🟢 SURVIVANT · Ce passager aurait survécu 🛟</div>',
-                    unsafe_allow_html=True,
+                banner = (
+                    '<div class="survivor-banner">'
+                    "🟢 SURVIVANT · Ce passager aurait survécu 🛟"
+                    "</div>"
                 )
             else:
-                st.markdown(
-                    '<div class="death-banner">🔴 DÉCÉDÉ · Ce passager n\'aurait pas survécu ⚓</div>',
-                    unsafe_allow_html=True,
+                banner = (
+                    '<div class="death-banner">'
+                    "🔴 DÉCÉDÉ · Ce passager n'aurait pas survécu ⚓"
+                    "</div>"
                 )
+            st.markdown(banner, unsafe_allow_html=True)
 
             col_metrics, col_gauge = st.columns([1, 1])
 
@@ -229,7 +236,8 @@ with history_tab:
         if rows:
             df_hist = pd.DataFrame(rows)
             st.dataframe(df_hist, use_container_width=True)
-            counts = df_hist["prediction"].value_counts().rename({1: "✅ Survivant", 0: "❌ Décédé"})
+            label_map = {1: "✅ Survivant", 0: "❌ Décédé"}
+            counts = df_hist["prediction"].value_counts().rename(label_map)
             st.bar_chart(counts)
         else:
             st.info("📭 Aucune prévision enregistrée pour l'instant.")
