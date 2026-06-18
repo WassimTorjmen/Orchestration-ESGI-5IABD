@@ -259,7 +259,7 @@ with st.sidebar:
     )
     api_ok = check_service(API_URL)
     mlflow_ok = check_service(MLFLOW_URL, "/")
-    airflow_ok = check_service(AIRFLOW_PUBLIC, "/health")
+    airflow_ok = check_service(AIRFLOW_PUBLIC, "/api/v2/monitor/health")
 
     for label, ok in [
         ("API FastAPI", api_ok),

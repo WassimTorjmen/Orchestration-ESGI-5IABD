@@ -9,7 +9,7 @@
 
 services:
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v3.13.0
+    image: ghcr.io/mlflow/mlflow:v3.14.0
     command: >
       mlflow server
       --host 0.0.0.0 --port 5000
@@ -20,7 +20,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - mlflow_data:/mlflow
+      - /home/torjmen/Orchestration-ESGI-5IABD:/mlflow
 
   train:
     build:
