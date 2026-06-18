@@ -229,17 +229,24 @@ with st.sidebar:
         "<h2 style='margin-top:0;color:#e2e8f0;font-size:18px;'>🧭 Navigation</h2>",
         unsafe_allow_html=True,
     )
+    _nav_options = [
+        "🏠  Accueil",
+        "🎯  Prédiction",
+        "📊  Évaluation",
+        "📈  Historique",
+        "🔗  Services",
+        "📋  À propos",
+    ]
+    _nav_idx = 0
+    if "nav_target" in st.session_state:
+        try:
+            _nav_idx = _nav_options.index(st.session_state.pop("nav_target"))
+        except ValueError:
+            pass
     page = st.radio(
         "nav",
-        key="nav_page",
-        options=[
-            "🏠  Accueil",
-            "🎯  Prédiction",
-            "📊  Évaluation",
-            "📈  Historique",
-            "🔗  Services",
-            "📋  À propos",
-        ],
+        options=_nav_options,
+        index=_nav_idx,
         label_visibility="collapsed",
     )
 
@@ -315,11 +322,11 @@ if "Accueil" in page:
     _hb1, _hb2, _hb3, _hb4 = st.columns([2, 2, 1, 1])
     with _hb1:
         if st.button("🎯 Faire une prédiction", type="primary", use_container_width=True):
-            st.session_state.nav_page = "🎯  Prédiction"
+            st.session_state["nav_target"] = "🎯  Prédiction"
             st.rerun()
     with _hb2:
         if st.button("📊 Voir les métriques", use_container_width=True):
-            st.session_state.nav_page = "📊  Évaluation"
+            st.session_state["nav_target"] = "📊  Évaluation"
             st.rerun()
 
     # ── Stats row
