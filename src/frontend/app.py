@@ -96,6 +96,19 @@ st.markdown("""
     letter-spacing:1.5px;
     margin:12px 0 6px 0;
 }
+@keyframes blink-color {
+    0%   { color:#06b6d4; }
+    25%  { color:#818cf8; }
+    50%  { color:#10b981; }
+    75%  { color:#f59e0b; }
+    100% { color:#06b6d4; }
+}
+.author-name {
+    animation: blink-color 2.5s infinite;
+    font-size:17px;
+    font-weight:800;
+    letter-spacing:0.5px;
+}
 .quality-ok {
     background:#064e3b;
     border-radius:6px;
@@ -196,6 +209,23 @@ st.markdown(f"""
 # ── Sidebar ─────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
+        f"<div style='background:#0f172a;border-radius:10px;padding:14px 16px;"
+        f"border:1px solid #334155;margin-bottom:8px;'>"
+        f"<p class='author-name'>👨‍💻 {AUTHOR}</p>"
+        f"<p style='color:#94a3b8;font-size:12px;margin:2px 0;'>"
+        f"🎓 {COURSE}</p>"
+        f"<hr style='border-color:#1e293b;margin:8px 0;'/>"
+        f"<p style='color:#64748b;font-size:11px;margin:0;'>"
+        f"🚀 FastAPI · MLflow · Airflow</p>"
+        f"<p style='color:#64748b;font-size:11px;margin:2px 0 0 0;'>"
+        f"🐳 Docker · GitHub Actions</p>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    st.divider()
+
+    st.markdown(
         "<h2 style='margin-top:0;color:#e2e8f0;font-size:18px;'>🧭 Navigation</h2>",
         unsafe_allow_html=True,
     )
@@ -259,13 +289,6 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
-    st.divider()
-    st.markdown(
-        f"<p style='font-size:11px;color:#475569;text-align:center;'>"
-        f"👨‍💻 {AUTHOR}<br>🎓 {COURSE}<br><br>"
-        f"🚀 Stack : FastAPI · MLflow · Airflow<br>Docker · GitHub Actions</p>",
-        unsafe_allow_html=True,
-    )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
