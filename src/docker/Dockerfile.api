@@ -1,0 +1,21 @@
+# Image de l'API FastAPI d'inference
+# Build : docker build -f src/docker/Dockerfile.api -t mlproject-api .
+# Run   : docker run --rm -p 8000:8000 -v "$PWD/models:/app/models:ro" mlproject-api
+
+FROM python:3.13-slim
+
+ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app/src
+
+WORKDIR /app
+
+# libgomp1 requis pour deserialiser un modele LightGBM
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir ".[api]"
+
+COPY src/ ./src/
+
+EXPOSE 8000
+CMD ["uvicorn", "mlproject.api:app", "--host", "0.0.0.0", "--port", "8000"]

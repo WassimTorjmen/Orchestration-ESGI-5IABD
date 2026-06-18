@@ -1,0 +1,24 @@
+# Seance 8 - Conteneuriser l'entrainement
+# Build : docker build -f src/docker/Dockerfile.train -t mlproject-train .
+# Run   : docker run --rm -v "$PWD/models:/app/models" mlproject-train
+
+FROM python:3.13-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src \
+    MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+
+WORKDIR /app
+
+# libgomp1 requis par LightGBM
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Deps d'abord pour profiter du cache de layers
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir ".[train]"
+
+# Code source (inclut src/mlproject/ et src/data/)
+COPY src/ ./src/
+
+CMD ["python", "-m", "mlproject.train"]
