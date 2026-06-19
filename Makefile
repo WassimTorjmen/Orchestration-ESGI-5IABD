@@ -35,7 +35,7 @@ RESET  := $(shell printf '\033[0m')
 .PHONY: help \
         check-uv check-venv venv-create install sync deps-sync lock reset-env doctor \
         data train train-models train-optuna evaluate evaluate-no-validate mlflow api frontend \
-        docker-build docker-run docker-up docker-train docker-down \
+        docker-build docker-run docker-up docker-train docker-down redeploy run-all \
         airflow-init airflow-up airflow-down \
         lint format type test check
 
@@ -157,6 +157,15 @@ docker-train: ## Lance l'entrainement via docker compose (alimente le volume)
 
 docker-up: ## Demarre la stack (mlflow, api, frontend)
 	docker compose up -d --build mlflow api frontend
+
+redeploy: ## Reconstruit et redémarre toute la stack en une commande
+	docker compose up -d --build --force-recreate mlflow api frontend
+
+run-all: ## Lancement complet : mlflow -> train (optuna) -> api -> frontend
+	docker compose up -d mlflow
+	docker compose --profile train run --rm train \
+	  python -m mlproject.train_optuna --n-trials $(N_TRIALS) --cv $(CV)
+	docker compose up -d --build api frontend
 
 docker-down: ## Arrete et supprime les conteneurs (conserve les volumes)
 	docker compose down
